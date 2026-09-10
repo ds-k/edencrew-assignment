@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import 'json_coerce.dart';
+import '../../core/utils/json_coerce.dart';
 
 /// `GET https://stock.naver.com/api/securityFe/api/fchart/domestic/stock/{symbol}`
 /// 응답. 플랫한 객체 하나다.

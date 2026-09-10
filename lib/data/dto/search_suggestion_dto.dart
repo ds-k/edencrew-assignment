@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import 'json_coerce.dart';
+import '../../core/utils/json_coerce.dart';
 
 /// `GET https://ac.stock.naver.com/ac` 응답 전체.
 ///

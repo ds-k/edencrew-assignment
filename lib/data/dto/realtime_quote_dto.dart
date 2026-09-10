@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import 'json_coerce.dart';
+import '../../core/utils/json_coerce.dart';
 
 /// `GET https://polling.finance.naver.com/api/realtime` 응답의 시세 한 건.
 ///

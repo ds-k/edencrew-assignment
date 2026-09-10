@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:edencrew_assignment_starter/data/dto/json_coerce.dart';
+import 'package:edencrew_assignment_starter/core/utils/json_coerce.dart';
 import 'package:edencrew_assignment_starter/data/dto/realtime_quote_dto.dart';
 import 'package:edencrew_assignment_starter/data/dto/search_suggestion_dto.dart';
 import 'package:edencrew_assignment_starter/data/dto/stock_metadata_dto.dart';
