@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../../core/network/naver_http_client.dart';
 import '../dto/search_suggestion_dto.dart';
 
 /// `GET https://ac.stock.naver.com/ac`. 응답은 UTF-8 JSON.
@@ -16,7 +17,7 @@ class NaverSearchApi {
       'q': query,
       'target': 'stock,ipo,index,marketindicator',
     });
-    final response = await _client.get(uri);
+    final response = await naverGet(_client, uri);
     final json =
         jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
     return SearchAutocompleteDto.fromJson(json);

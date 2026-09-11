@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cp949_codec/cp949_codec.dart';
 import 'package:http/http.dart' as http;
 
+import '../../core/network/naver_http_client.dart';
 import '../dto/realtime_quote_dto.dart';
 
 /// `GET https://polling.finance.naver.com/api/realtime`.
@@ -22,7 +23,7 @@ class NaverQuoteApi {
     final uri = Uri.https('polling.finance.naver.com', '/api/realtime', {
       'query': 'SERVICE_ITEM:${symbols.join(',')}',
     });
-    final response = await _client.get(uri);
+    final response = await naverGet(_client, uri);
     final json =
         jsonDecode(cp949.decode(response.bodyBytes)) as Map<String, dynamic>;
     return RealtimeQuoteDto.listFromResponse(json);

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../../core/network/naver_http_client.dart';
 import '../dto/stock_metadata_dto.dart';
 
 /// `GET https://stock.naver.com/api/securityFe/api/fchart/domestic/stock/{symbol}`.
@@ -20,7 +21,7 @@ class NaverMetadataApi {
     final uri = Uri.parse(
       'https://stock.naver.com/api/securityFe/api/fchart/domestic/stock/$symbol',
     );
-    final response = await _client.get(uri);
+    final response = await naverGet(_client, uri);
     final json =
         jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
     final dto = StockMetadataDto.fromJson(json);
