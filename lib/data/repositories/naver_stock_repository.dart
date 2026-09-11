@@ -63,7 +63,7 @@ class NaverStockRepository implements StockRepository {
       symbols,
     );
     final Future<List<StockMetadataDto>> metadataFuture = Future.wait(
-      symbols.map(_metadataApi.fetchMetadata),
+      symbols.map(_fetchMetadataOrEmpty),
     );
 
     final List<RealtimeQuoteDto> quotes = await quotesFuture;
@@ -77,6 +77,15 @@ class NaverStockRepository implements StockRepository {
       for (var i = 0; i < symbols.length; i++)
         _toStock(symbols[i], metadataList[i], quoteBySymbol[symbols[i]]),
     ];
+  }
+
+  /// 심볼 하나의 메타데이터 요청이 실패해도 나머지 종목까지 통째로 실패하지 않도록 격리한다
+  Future<StockMetadataDto> _fetchMetadataOrEmpty(String symbol) async {
+    try {
+      return await _metadataApi.fetchMetadata(symbol);
+    } catch (_) {
+      return const StockMetadataDto();
+    }
   }
 
   Stock _toStock(
