@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cp949_codec/cp949_codec.dart';
+import 'package:edencrew_assignment_starter/core/network/naver_http_client.dart';
 import 'package:edencrew_assignment_starter/data/datasources/naver_daily_price_api.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -75,6 +76,41 @@ void main() {
     });
   });
 
+  group('NaverDailyPriceApi.parseRows 숫자 파싱 실패 처리', () {
+    test('숫자로 못 읽는 셀이 있는 행은 0으로 채우지 않고 건너뛴다', () {
+      const html = '''
+<table class="type2">
+<tr><th>date</th><th>close</th><th>diff</th><th>open</th><th>high</th><th>low</th><th>volume</th></tr>
+<tr>
+<td align="center"><span>2026.01.02</span></td>
+<td class="num"><span>-</span></td>
+<td class="num"><span>0</span></td>
+<td class="num"><span>10,000</span></td>
+<td class="num"><span>10,500</span></td>
+<td class="num"><span>9,500</span></td>
+<td class="num"><span>1,000</span></td>
+</tr>
+<tr>
+<td align="center"><span>2026.01.01</span></td>
+<td class="num"><span>10,000</span></td>
+<td class="num"><span>0</span></td>
+<td class="num"><span>10,000</span></td>
+<td class="num"><span>10,500</span></td>
+<td class="num"><span>9,500</span></td>
+<td class="num"><span>1,000</span></td>
+</tr>
+</table>
+''';
+
+      final rows = NaverDailyPriceApi.parseRows(html);
+
+      // 종가가 "-"라 파싱 실패한 01.02 행은 closePrice=0으로 위장되지 않고
+      // 아예 빠져야 한다. 정상 행(01.01)만 남는다.
+      expect(rows, hasLength(1));
+      expect(rows.single.localDate, '20260101');
+    });
+  });
+
   group('NaverDailyPriceApi 페이지 캐시 / lastPage clamp', () {
     test('이미 받은 페이지는 재요청하지 않는다', () async {
       final requestedPages = <int>[];
@@ -138,6 +174,30 @@ void main() {
       api.clearCache();
       await api.fetchPage('005930', 1);
       expect(requestCount, 2);
+    });
+  });
+
+  group('NaverDailyPriceApi 상태코드 검사', () {
+    test('200이 아니면 예외를 던지고 캐시하지 않는다', () async {
+      var callCount = 0;
+      final client = MockClient((request) async {
+        callCount++;
+        return http.Response('blocked', 503);
+      });
+      final api = NaverDailyPriceApi(client: client);
+
+      await expectLater(
+        () => api.fetchPage('005930', 1),
+        throwsA(isA<NaverHttpException>()),
+      );
+      expect(callCount, 1);
+
+      // 실패 응답이 캐시에 안 남아있어야 다시 호출했을 때도 네트워크를 탄다.
+      await expectLater(
+        () => api.fetchPage('005930', 1),
+        throwsA(isA<NaverHttpException>()),
+      );
+      expect(callCount, 2);
     });
   });
 }
