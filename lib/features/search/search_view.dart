@@ -9,6 +9,7 @@ import '../../core/widgets/toast.dart';
 import '../../data/models/search_result.dart';
 import '../../state/favorites_provider.dart';
 import '../../theme/theme.dart';
+import '../detail/detail_view.dart';
 import 'search_viewmodel.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -231,32 +232,39 @@ class _ResultList extends ConsumerWidget {
         final SearchResult result = results[index];
         final bool isFavorite = favorites.contains(result.id);
 
-        return StockRow(
-          name: Text.rich(
-            TextSpan(
-              children: highlightedSpans(
-                result.name,
-                query,
-                normal: StockRow.nameStyle(context),
-                highlight: StockRow.nameStyle(
-                  context,
-                ).copyWith(color: context.colors.searchHighlight),
-              ),
+        return InkWell(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => DetailScreen(symbol: result.symbol),
             ),
-            overflow: TextOverflow.ellipsis,
           ),
-          subtitle: '${result.symbol} · ${result.market}',
-          trailing: GestureDetector(
-            onTap: () {
-              ref.read(favoritesProvider.notifier).toggle(result.id);
-              showFavoriteToast(context, registered: !isFavorite);
-            },
-            child: AppIcon(
-              isFavorite ? 'ico_starFill.svg' : 'ico_starEmpty.svg',
-              size: context.dimens.iconMd,
-              color: isFavorite
-                  ? context.colors.favoriteActive
-                  : context.colors.favoriteInactive,
+          child: StockRow(
+            name: Text.rich(
+              TextSpan(
+                children: highlightedSpans(
+                  result.name,
+                  query,
+                  normal: StockRow.nameStyle(context),
+                  highlight: StockRow.nameStyle(
+                    context,
+                  ).copyWith(color: context.colors.searchHighlight),
+                ),
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: '${result.symbol} · ${result.market}',
+            trailing: GestureDetector(
+              onTap: () {
+                ref.read(favoritesProvider.notifier).toggle(result.id);
+                showFavoriteToast(context, registered: !isFavorite);
+              },
+              child: AppIcon(
+                isFavorite ? 'ico_starFill.svg' : 'ico_starEmpty.svg',
+                size: context.dimens.iconMd,
+                color: isFavorite
+                    ? context.colors.favoriteActive
+                    : context.colors.favoriteInactive,
+              ),
             ),
           ),
         );

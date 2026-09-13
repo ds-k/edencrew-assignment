@@ -9,6 +9,7 @@ import '../../core/widgets/stock_row.dart';
 import '../../data/models/stock.dart';
 import '../../state/favorites_provider.dart';
 import '../../theme/theme.dart';
+import '../detail/detail_view.dart';
 import 'sort_order.dart';
 import 'watchlist_viewmodel.dart';
 
@@ -198,14 +199,21 @@ class _WatchlistBody extends StatelessWidget {
       separatorBuilder: (_, _) => const RowDivider(),
       itemBuilder: (BuildContext context, int index) {
         final Stock stock = stocks[index];
-        return StockRow(
-          name: Text(
-            stock.name,
-            overflow: TextOverflow.ellipsis,
-            style: StockRow.nameStyle(context),
+        return InkWell(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => DetailScreen(symbol: stock.symbol),
+            ),
           ),
-          subtitle: '${stock.symbol} · ${stock.market}',
-          trailing: PriceText(stock: stock),
+          child: StockRow(
+            name: Text(
+              stock.name,
+              overflow: TextOverflow.ellipsis,
+              style: StockRow.nameStyle(context),
+            ),
+            subtitle: '${stock.symbol} · ${stock.market}',
+            trailing: PriceText(stock: stock),
+          ),
         );
       },
     );
