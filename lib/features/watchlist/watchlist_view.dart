@@ -28,8 +28,13 @@ class WatchlistScreen extends ConsumerWidget {
             Expanded(
               child: asyncStocks.when(
                 skipLoadingOnReload: true,
-                data: (List<Stock> stocks) => WatchlistBody(
-                  stocks: sortStocks(stocks, ref.watch(selectedSortOrderProvider)),
+                data: (List<Stock> stocks) => RefreshIndicator(
+                  color: context.colors.accentDefault,
+                  onRefresh: () =>
+                      ref.read(watchlistViewModelProvider.notifier).refresh(),
+                  child: WatchlistBody(
+                    stocks: sortStocks(stocks, ref.watch(selectedSortOrderProvider)),
+                  ),
                 ),
                 loading: () => const WatchlistLoadingBody(),
                 error: (Object error, StackTrace stackTrace) =>
