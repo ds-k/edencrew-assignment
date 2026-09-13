@@ -1,34 +1,158 @@
 import 'package:flutter/material.dart';
 
+import '../../core/utils/date_format.dart';
 import '../../core/utils/price_format.dart';
 import '../../data/models/candle.dart';
 import '../../theme/theme.dart';
 
 /// 캔들 차트. 꼬리(`chartBaseline`) + 몸통(`chartLineUp`/`chartLineDown`) + 우측 가격
 /// 축 라벨(`chartAxisLabel`) + 하단 거래량 바(`chartVolumeBar`) + 종가선 아래 영역
-/// 채우기(`chartAreaUp`/`chartAreaDown`)를 그린다. 그리드·크로스헤어·스케일 버튼은 없다.
-class CandleChart extends StatelessWidget {
+/// 채우기(`chartAreaUp`/`chartAreaDown`)를 그린다. 누르고 드래그하면 크로스헤어 +
+/// OHLC 툴팁이 뜨고, 손을 떼면 사라진다. 그리드·스케일 버튼은 없다.
+class CandleChart extends StatefulWidget {
   const CandleChart({super.key, required this.candles});
 
   final List<Candle> candles;
 
   @override
+  State<CandleChart> createState() => _CandleChartState();
+}
+
+class _CandleChartState extends State<CandleChart> {
+  int? _hoverIndex;
+
+  @override
+  void didUpdateWidget(covariant CandleChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.candles, widget.candles)) {
+      _hoverIndex = null;
+    }
+  }
+
+  void _updateHover(Offset localPosition, double width, int candleCount) {
+    final double chartWidth = width - _CandleChartPainter.axisLabelWidth;
+    final double slotWidth = chartWidth / candleCount;
+    final int index = (localPosition.dx / slotWidth).floor().clamp(
+      0,
+      candleCount - 1,
+    );
+    if (index != _hoverIndex) setState(() => _hoverIndex = index);
+  }
+
+  @override
   Widget build(BuildContext context) {
     // repository가 최신순으로 주므로, 왼쪽이 과거·오른쪽이 최신이 되도록 뒤집는다.
-    final List<Candle> chronological = candles.reversed.toList(growable: false);
+    final List<Candle> chronological = widget.candles.reversed.toList(
+      growable: false,
+    );
 
-    return CustomPaint(
-      size: Size.infinite,
-      painter: _CandleChartPainter(
-        candles: chronological,
-        bullColor: context.colors.chartLineUp,
-        bearColor: context.colors.chartLineDown,
-        baselineColor: context.colors.chartBaseline,
-        axisLabelColor: context.colors.chartAxisLabel,
-        volumeBarColor: context.colors.chartVolumeBar,
-        areaUpColor: context.colors.chartAreaUp,
-        areaDownColor: context.colors.chartAreaDown,
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        return GestureDetector(
+          onPanDown: (DragDownDetails details) => _updateHover(
+            details.localPosition,
+            constraints.maxWidth,
+            chronological.length,
+          ),
+          onPanUpdate: (DragUpdateDetails details) => _updateHover(
+            details.localPosition,
+            constraints.maxWidth,
+            chronological.length,
+          ),
+          onPanEnd: (_) => setState(() => _hoverIndex = null),
+          onPanCancel: () => setState(() => _hoverIndex = null),
+          child: Stack(
+            children: <Widget>[
+              Positioned.fill(
+                child: CustomPaint(
+                  size: Size.infinite,
+                  painter: _CandleChartPainter(
+                    candles: chronological,
+                    hoverIndex: _hoverIndex,
+                    bullColor: context.colors.chartLineUp,
+                    bearColor: context.colors.chartLineDown,
+                    baselineColor: context.colors.chartBaseline,
+                    axisLabelColor: context.colors.chartAxisLabel,
+                    volumeBarColor: context.colors.chartVolumeBar,
+                    areaUpColor: context.colors.chartAreaUp,
+                    areaDownColor: context.colors.chartAreaDown,
+                  ),
+                ),
+              ),
+              if (_hoverIndex != null && _hoverIndex! < chronological.length)
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  child: _OhlcTooltip(candle: chronological[_hoverIndex!]),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _OhlcTooltip extends StatelessWidget {
+  const _OhlcTooltip({required this.candle});
+
+  final Candle candle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: context.dimens.space3,
+        vertical: context.dimens.space2,
       ),
+      decoration: BoxDecoration(
+        color: context.colors.surfaceOverlay,
+        borderRadius: BorderRadius.circular(context.dimens.radiusMd),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Text(
+            formatMonthDay(candle.date),
+            style: TextStyle(
+              color: context.colors.textPrimary,
+              fontSize: 12,
+              fontWeight: AppTypography.medium,
+            ),
+          ),
+          SizedBox(height: context.dimens.space1),
+          _OhlcRow(label: '시가', value: formatPrice(candle.open)),
+          _OhlcRow(label: '고가', value: formatPrice(candle.high)),
+          _OhlcRow(label: '저가', value: formatPrice(candle.low)),
+          _OhlcRow(label: '종가', value: formatPrice(candle.close)),
+          _OhlcRow(label: '거래량', value: formatPrice(candle.volume)),
+        ],
+      ),
+    );
+  }
+}
+
+class _OhlcRow extends StatelessWidget {
+  const _OhlcRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Text(
+          '$label ',
+          style: TextStyle(color: context.colors.textSecondary, fontSize: 11),
+        ),
+        Text(
+          value,
+          style: TextStyle(color: context.colors.textPrimary, fontSize: 11),
+        ),
+      ],
     );
   }
 }
@@ -36,6 +160,7 @@ class CandleChart extends StatelessWidget {
 class _CandleChartPainter extends CustomPainter {
   _CandleChartPainter({
     required this.candles,
+    required this.hoverIndex,
     required this.bullColor,
     required this.bearColor,
     required this.baselineColor,
@@ -46,10 +171,14 @@ class _CandleChartPainter extends CustomPainter {
   });
 
   final List<Candle> candles;
+
+  /// 눌러서 드래그 중인 캔들 인덱스. `null`이면 크로스헤어/툴팁을 안 그린다.
+  final int? hoverIndex;
+
   final Color bullColor;
   final Color bearColor;
 
-  /// 캔들 꼬리(고가-저가 선)와, 등락이 전혀 없는 캔들의 표시 색.
+  /// 캔들 꼬리(고가-저가 선)와, 등락이 전혀 없는 캔들의 표시 색, 크로스헤어 선 색.
   final Color baselineColor;
 
   final Color axisLabelColor;
@@ -57,7 +186,7 @@ class _CandleChartPainter extends CustomPainter {
   final Color areaUpColor;
   final Color areaDownColor;
 
-  static const double _axisLabelWidth = 40;
+  static const double axisLabelWidth = 40;
   static const double _volumeHeightRatio = 0.2;
   static const double _priceVolumeGap = 4;
 
@@ -65,7 +194,7 @@ class _CandleChartPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (candles.isEmpty) return;
 
-    final double chartWidth = size.width - _axisLabelWidth;
+    final double chartWidth = size.width - axisLabelWidth;
     final double volumeHeight = size.height * _volumeHeightRatio;
     final double priceHeight = size.height - volumeHeight - _priceVolumeGap;
 
@@ -134,6 +263,17 @@ class _CandleChartPainter extends CustomPainter {
         Rect.fromLTWH(centerX - bodyWidth / 2, top, bodyWidth, bodyHeight),
         Paint()..color = candle.isUp ? bullColor : bearColor,
       );
+    }
+
+    final int? hovered = hoverIndex;
+    if (hovered != null && hovered < candles.length) {
+      final double centerX = (hovered + 0.5) * slotWidth;
+      final double closeY = yFor(candles[hovered].close);
+      final Paint crosshairPaint = Paint()
+        ..color = baselineColor
+        ..strokeWidth = 1;
+      canvas.drawLine(Offset(centerX, 0), Offset(centerX, size.height), crosshairPaint);
+      canvas.drawLine(Offset(0, closeY), Offset(chartWidth, closeY), crosshairPaint);
     }
 
     _drawAxisLabels(canvas, chartWidth, priceHeight, topValue, bottomValue);
@@ -209,7 +349,7 @@ class _CandleChartPainter extends CustomPainter {
           style: TextStyle(color: axisLabelColor, fontSize: 10),
         ),
         textDirection: TextDirection.ltr,
-      )..layout(maxWidth: _axisLabelWidth - 4);
+      )..layout(maxWidth: axisLabelWidth - 4);
       final double dy = (y - painter.height / 2).clamp(0, priceHeight - painter.height);
       painter.paint(canvas, Offset(chartWidth + 4, dy));
     }
@@ -218,6 +358,7 @@ class _CandleChartPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _CandleChartPainter oldDelegate) {
     return !identical(oldDelegate.candles, candles) ||
+        oldDelegate.hoverIndex != hoverIndex ||
         oldDelegate.bullColor != bullColor ||
         oldDelegate.bearColor != bearColor ||
         oldDelegate.baselineColor != baselineColor ||
