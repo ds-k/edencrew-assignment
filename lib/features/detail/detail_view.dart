@@ -1,4 +1,3 @@
-import 'package:candlesticks/candlesticks.dart' as cs;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,6 +10,7 @@ import '../../data/models/candle.dart';
 import '../../data/models/stock.dart';
 import '../../state/favorites_provider.dart';
 import '../../theme/theme.dart';
+import 'candle_chart.dart';
 import 'candles_provider.dart';
 import 'detail_viewmodel.dart';
 
@@ -212,15 +212,15 @@ class _PeriodTabs extends ConsumerWidget {
 
     return Row(
       children: <Widget>[
-        for (final ChartPeriod period in ChartPeriod.values) ...<Widget>[
-          _PeriodTab(
-            period: period,
-            selected: period == selected,
-            onTap: () =>
-                ref.read(selectedPeriodProvider.notifier).select(period),
+        for (final ChartPeriod period in ChartPeriod.values)
+          Expanded(
+            child: _PeriodTab(
+              period: period,
+              selected: period == selected,
+              onTap: () =>
+                  ref.read(selectedPeriodProvider.notifier).select(period),
+            ),
           ),
-          SizedBox(width: context.dimens.space2),
-        ],
       ],
     );
   }
@@ -243,6 +243,7 @@ class _PeriodTab extends StatelessWidget {
       borderRadius: BorderRadius.circular(context.dimens.radiusMd),
       onTap: onTap,
       child: Container(
+        alignment: Alignment.center,
         padding: EdgeInsets.symmetric(
           horizontal: context.dimens.space3,
           vertical: context.dimens.space2,
@@ -283,6 +284,7 @@ class _ChartSection extends ConsumerWidget {
     );
 
     return SizedBox(
+      width: double.infinity,
       height: _height,
       child: asyncCandles.when(
         data: (List<Candle> candles) {
@@ -294,41 +296,7 @@ class _ChartSection extends ConsumerWidget {
               ),
             );
           }
-          return cs.Candlesticks(
-            candles: <cs.Candle>[
-              for (final Candle candle in candles)
-                cs.Candle(
-                  date: candle.date,
-                  high: candle.high.toDouble(),
-                  low: candle.low.toDouble(),
-                  open: candle.open.toDouble(),
-                  close: candle.close.toDouble(),
-                  volume: candle.volume.toDouble(),
-                ),
-            ],
-            // 상승/하락 캔들 색만 토큰(chartLineUp/chartLineDown)에 맞추면 되고,
-            // 그 외 렌더링 디테일은 시안과 달라도 감점 대상이 아니다(ASSIGNMENT.md).
-            style: cs.CandleSticksStyle.dark(
-              chartBackgroundColor: context.colors.surfaceBase,
-              gridLineColor: context.colors.borderSubtle,
-              axisTextColor: context.colors.chartAxisLabel,
-              candleBullColor: context.colors.chartLineUp,
-              candleBearColor: context.colors.chartLineDown,
-              // 토큰에 거래량 바 상승/하락 구분이 없어(chartVolumeBar 하나뿐) 양쪽에
-              // 같은 값을 쓴다.
-              volumeBullColor: context.colors.chartVolumeBar,
-              volumeBearColor: context.colors.chartVolumeBar,
-              crosshairLabelBackgroundColor: context.colors.surfaceOverlay,
-              crosshairLabelTextColor: context.colors.textPrimary,
-              ohlcInfoTextColor: context.colors.textSecondary,
-              ohlcInfoBullColor: context.colors.chartLineUp,
-              ohlcInfoBearColor: context.colors.chartLineDown,
-              priceIndicatorBullBackgroundColor: context.colors.chartLineUp,
-              priceIndicatorBearBackgroundColor: context.colors.chartLineDown,
-              priceIndicatorTextColor: context.colors.textPrimary,
-              loadingIndicatorColor: context.colors.accentDefault,
-            ),
-          );
+          return CandleChart(candles: candles);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (Object error, StackTrace stackTrace) => Center(

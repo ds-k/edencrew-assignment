@@ -3,9 +3,6 @@ import 'package:flutter/foundation.dart';
 import '../dto/daily_price_row_dto.dart';
 
 /// 상세 화면 기간 탭. `pageCount`는 `NaverDailyPriceApi.fetchRange`에 그대로 넘긴다.
-///
-/// 향후 캔들 차트에 쓸 `candlesticks` 패키지도 모델 클래스명이 `Candle`이라, 상세 화면에서
-/// 같이 쓸 때는 `import 'package:candlesticks/candlesticks.dart' as cs;`처럼 alias가 필요하다.
 enum ChartPeriod {
   month1(pageCount: 2, label: '1개월'),
   month3(pageCount: 6, label: '3개월'),
@@ -18,10 +15,7 @@ enum ChartPeriod {
   final String label;
 }
 
-/// 캔들 하나. `DailyPriceRowDto` 기반.
-///
-/// 가격/거래량은 원화·주식 수량이라 정수로 담는다(`candlesticks` 패키지의 `Candle`은
-/// `double`을 쓰므로, 위젯에 넘길 때 그쪽에서 `.toDouble()` 변환).
+/// 캔들 하나. `DailyPriceRowDto` 기반. 가격/거래량은 원화·주식 수량이라 정수로 담는다.
 @immutable
 class Candle {
   const Candle({
