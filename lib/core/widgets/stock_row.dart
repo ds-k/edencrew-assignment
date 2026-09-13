@@ -12,13 +12,20 @@ class StockRow extends StatelessWidget {
     required this.trailing,
   });
 
-  /// 종목명.
-  final String name;
+  /// 종목명. 관심 화면은 [Text], 검색 화면은 하이라이트된 [Text.rich]를 넣는다.
+  final Widget name;
 
   /// `종목코드 · 시장`.
   final String subtitle;
 
   final Widget trailing;
+
+  /// [name]에 넣을 위젯이 참조할 스타일. 화면마다 다른 위젯을 넣어도 글자 모양은 통일한다.
+  static TextStyle nameStyle(BuildContext context) => TextStyle(
+    color: context.colors.textPrimary,
+    fontSize: 16,
+    fontWeight: AppTypography.medium,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -31,15 +38,7 @@ class StockRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                Text(
-                  name,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: context.colors.textPrimary,
-                    fontSize: 16,
-                    fontWeight: AppTypography.medium,
-                  ),
-                ),
+                name,
                 SizedBox(height: context.dimens.space1),
                 Text(
                   subtitle,

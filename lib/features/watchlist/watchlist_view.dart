@@ -196,7 +196,11 @@ class _WatchlistBody extends StatelessWidget {
       itemBuilder: (BuildContext context, int index) {
         final Stock stock = stocks[index];
         return StockRow(
-          name: stock.name,
+          name: Text(
+            stock.name,
+            overflow: TextOverflow.ellipsis,
+            style: StockRow.nameStyle(context),
+          ),
           subtitle: '${stock.symbol} · ${stock.market}',
           trailing: PriceText(stock: stock),
         );
