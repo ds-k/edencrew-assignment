@@ -25,7 +25,7 @@ class SearchBody extends ConsumerWidget {
         if (results.isEmpty) return SearchNoResultsBody(query: query);
         return SearchResultList(results: results, query: query);
       },
-      loading: () => const SizedBox.shrink(),
+      loading: () => const Center(child: CircularProgressIndicator()),
       error: (Object error, StackTrace stackTrace) => Center(
         child: Text(
           '검색 결과를 불러오지 못했습니다',
