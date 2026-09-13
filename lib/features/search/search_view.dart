@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/utils/highlight.dart';
 import '../../core/widgets/app_icon.dart';
+import '../../core/widgets/row_divider.dart';
 import '../../core/widgets/stock_row.dart';
 import '../../core/widgets/toast.dart';
 import '../../data/models/search_result.dart';
@@ -225,7 +226,7 @@ class _ResultList extends ConsumerWidget {
     return ListView.separated(
       padding: EdgeInsets.symmetric(horizontal: context.dimens.space4),
       itemCount: results.length,
-      separatorBuilder: (_, _) => SizedBox(height: context.dimens.space2),
+      separatorBuilder: (_, _) => const RowDivider(),
       itemBuilder: (BuildContext context, int index) {
         final SearchResult result = results[index];
         final bool isFavorite = favorites.contains(result.id);

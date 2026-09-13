@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/widgets/app_icon.dart';
 import '../../core/widgets/price_text.dart';
+import '../../core/widgets/row_divider.dart';
 import '../../core/widgets/skeleton_box.dart';
 import '../../core/widgets/stock_row.dart';
 import '../../data/models/stock.dart';
@@ -194,7 +195,7 @@ class _WatchlistBody extends StatelessWidget {
     return ListView.separated(
       padding: EdgeInsets.symmetric(horizontal: context.dimens.space4),
       itemCount: stocks.length,
-      separatorBuilder: (_, _) => SizedBox(height: context.dimens.space2),
+      separatorBuilder: (_, _) => const RowDivider(),
       itemBuilder: (BuildContext context, int index) {
         final Stock stock = stocks[index];
         return StockRow(
