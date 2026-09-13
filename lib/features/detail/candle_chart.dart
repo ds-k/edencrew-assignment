@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../data/models/candle.dart';
 import '../../theme/theme.dart';
 
-/// 캔들 차트. 그리드 배경 + 꼬리(`chartBaseline`) + 몸통(`chartLineUp`/`chartLineDown`)만
-/// 그린다. 축 숫자·거래량·크로스헤어·스케일 버튼은 없다(좌우 폭을 꽉 채우는 순수 차트).
+/// 캔들 차트. 꼬리(`chartBaseline`) + 몸통(`chartLineUp`/`chartLineDown`)만 그린다.
+/// 그리드·축 숫자·거래량·크로스헤어·스케일 버튼은 없다(좌우 폭을 꽉 채우는 순수 차트).
 class CandleChart extends StatelessWidget {
   const CandleChart({super.key, required this.candles});
 
@@ -22,7 +22,6 @@ class CandleChart extends StatelessWidget {
         bullColor: context.colors.chartLineUp,
         bearColor: context.colors.chartLineDown,
         baselineColor: context.colors.chartBaseline,
-        gridColor: context.colors.borderSubtle,
       ),
     );
   }
@@ -34,7 +33,6 @@ class _CandleChartPainter extends CustomPainter {
     required this.bullColor,
     required this.bearColor,
     required this.baselineColor,
-    required this.gridColor,
   });
 
   final List<Candle> candles;
@@ -43,16 +41,10 @@ class _CandleChartPainter extends CustomPainter {
 
   /// 캔들 꼬리(고가-저가 선)와, 등락이 전혀 없는 캔들의 표시 색.
   final Color baselineColor;
-  final Color gridColor;
-
-  static const int _gridColumns = 6;
-  static const int _gridRows = 4;
 
   @override
   void paint(Canvas canvas, Size size) {
     if (candles.isEmpty) return;
-
-    _drawGrid(canvas, size);
 
     final int high = candles.map((Candle c) => c.high).reduce(
       (int a, int b) => a > b ? a : b,
@@ -108,26 +100,13 @@ class _CandleChartPainter extends CustomPainter {
     }
   }
 
-  void _drawGrid(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = gridColor
-      ..strokeWidth = 1;
-    for (int i = 1; i < _gridColumns; i++) {
-      final double x = size.width * i / _gridColumns;
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (int j = 1; j < _gridRows; j++) {
-      final double y = size.height * j / _gridRows;
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
+
 
   @override
   bool shouldRepaint(covariant _CandleChartPainter oldDelegate) {
     return !identical(oldDelegate.candles, candles) ||
         oldDelegate.bullColor != bullColor ||
         oldDelegate.bearColor != bearColor ||
-        oldDelegate.baselineColor != baselineColor ||
-        oldDelegate.gridColor != gridColor;
+        oldDelegate.baselineColor != baselineColor;
   }
 }
