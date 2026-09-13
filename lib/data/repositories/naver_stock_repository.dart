@@ -1,3 +1,5 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../datasources/naver_daily_price_api.dart';
 import '../datasources/naver_metadata_api.dart';
 import '../datasources/naver_quote_api.dart';
@@ -9,6 +11,13 @@ import '../models/candle.dart';
 import '../models/search_result.dart';
 import '../models/stock.dart';
 import 'stock_repository.dart';
+
+part 'naver_stock_repository.g.dart';
+
+/// 화면 전역에서 공유하는 [StockRepository] 인스턴스.
+@Riverpod(keepAlive: true)
+StockRepository stockRepository(StockRepositoryRef ref) =>
+    NaverStockRepository();
 
 class NaverStockRepository implements StockRepository {
   NaverStockRepository({
