@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/utils/highlight.dart';
 import '../../core/widgets/app_icon.dart';
 import '../../core/widgets/stock_row.dart';
+import '../../core/widgets/toast.dart';
 import '../../data/models/search_result.dart';
 import '../../state/favorites_provider.dart';
 import '../../theme/theme.dart';
@@ -169,12 +170,18 @@ class _ResultList extends ConsumerWidget {
             overflow: TextOverflow.ellipsis,
           ),
           subtitle: '${result.symbol} · ${result.market}',
-          trailing: AppIcon(
-            isFavorite ? 'ico_starFill.svg' : 'ico_starEmpty.svg',
-            size: context.dimens.iconMd,
-            color: isFavorite
-                ? context.colors.favoriteActive
-                : context.colors.favoriteInactive,
+          trailing: GestureDetector(
+            onTap: () {
+              ref.read(favoritesProvider.notifier).toggle(result.id);
+              showFavoriteToast(context, registered: !isFavorite);
+            },
+            child: AppIcon(
+              isFavorite ? 'ico_starFill.svg' : 'ico_starEmpty.svg',
+              size: context.dimens.iconMd,
+              color: isFavorite
+                  ? context.colors.favoriteActive
+                  : context.colors.favoriteInactive,
+            ),
           ),
         );
       },
