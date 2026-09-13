@@ -34,6 +34,10 @@ class DailyPriceTable extends ConsumerStatefulWidget {
 class _DailyPriceTableState extends ConsumerState<DailyPriceTable> {
   int _visibleCount = DailyPriceTable._initialVisibleCount;
 
+  /// 마지막으로 받은 캔들 총 개수. build()에서 매번 갱신되며, `_onScroll`이 상한을
+  /// 넘어서 계속 setState하지 않도록 막는 데 쓴다.
+  int _totalCount = 0;
+
   @override
   void initState() {
     super.initState();
@@ -47,13 +51,17 @@ class _DailyPriceTableState extends ConsumerState<DailyPriceTable> {
   }
 
   void _onScroll() {
+    if (_visibleCount >= _totalCount) return;
     if (!widget.scrollController.hasClients) return;
     final ScrollPosition position = widget.scrollController.position;
     if (position.pixels < position.maxScrollExtent - DailyPriceTable._loadMoreThreshold) {
       return;
     }
     setState(() {
-      _visibleCount += DailyPriceTable._loadMoreCount;
+      _visibleCount = (_visibleCount + DailyPriceTable._loadMoreCount).clamp(
+        0,
+        _totalCount,
+      );
     });
   }
 
@@ -86,9 +94,12 @@ class _DailyPriceTableState extends ConsumerState<DailyPriceTable> {
           ),
           SizedBox(height: context.dimens.space3),
           asyncCandles.when(
-            data: (List<Candle> candles) => _DailyPriceRows(
-              candles: candles.take(_visibleCount).toList(growable: false),
-            ),
+            data: (List<Candle> candles) {
+              _totalCount = candles.length;
+              return _DailyPriceRows(
+                candles: candles.take(_visibleCount).toList(growable: false),
+              );
+            },
             loading: () => const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
               child: Center(child: CircularProgressIndicator()),

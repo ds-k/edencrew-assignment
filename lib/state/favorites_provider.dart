@@ -1,6 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../core/preferences_provider.dart';
+import 'preferences_provider.dart';
 
 part 'favorites_provider.g.dart';
 

@@ -1,6 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../core/preferences_provider.dart';
+import '../../state/preferences_provider.dart';
 import '../../data/models/stock.dart';
 
 part 'sort_order.g.dart';

@@ -22,6 +22,9 @@ Future<List<SearchResult>> searchResults(SearchResultsRef ref, String query) asy
   final List<SearchResult> results = await ref
       .read(stockRepositoryProvider)
       .search(trimmed);
+  // 검색 자체가 오래 걸려서 그 사이 사용자가 계속 타이핑했으면(디바운스보다 느린
+  // 네트워크), 이 결과는 이미 버려진 것 — 최근 검색어에도 남기지 않는다.
+  if (disposed) return const <SearchResult>[];
   ref.read(recentSearchesProvider.notifier).add(trimmed);
   return results;
 }

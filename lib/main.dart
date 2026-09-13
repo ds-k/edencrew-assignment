@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'core/preferences_provider.dart';
+import 'state/preferences_provider.dart';
 import 'core/widgets/app_icon.dart';
 import 'features/search/search_view.dart';
 import 'features/watchlist/watchlist_view.dart';

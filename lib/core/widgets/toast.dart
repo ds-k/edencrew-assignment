@@ -8,7 +8,14 @@ import 'app_icon.dart';
 ///
 /// `ScaffoldMessenger`/`SnackBar`(기본 Material 애니메이션) 대신 `Overlay`에 직접 올려서
 /// 등장/퇴장 애니메이션을 직접 정의한다.
+/// 현재 떠 있는 토스트. 연달아 두 번 누르면 이전 토스트를 즉시 치우고 새로 띄운다
+/// (`ScaffoldMessenger.hideCurrentSnackBar()`가 하던 것과 같은 역할).
+OverlayEntry? _activeToastEntry;
+
 void showFavoriteToast(BuildContext context, {required bool registered}) {
+  _activeToastEntry?.remove();
+  _activeToastEntry = null;
+
   final OverlayState overlay = Overlay.of(context);
   final double bottomInset =
       MediaQuery.of(context).padding.bottom +
@@ -20,10 +27,16 @@ void showFavoriteToast(BuildContext context, {required bool registered}) {
     builder: (BuildContext context) => _AnimatedToast(
       registered: registered,
       bottomInset: bottomInset,
-      onFinished: () => entry.remove(),
+      onFinished: () {
+        entry.remove();
+        if (identical(_activeToastEntry, entry)) {
+          _activeToastEntry = null;
+        }
+      },
     ),
   );
 
+  _activeToastEntry = entry;
   overlay.insert(entry);
 }
 
@@ -70,9 +83,11 @@ class _AnimatedToastState extends State<_AnimatedToast>
 
   Future<void> _show() async {
     await _controller.forward();
+    if (!mounted) return;
     await Future<void>.delayed(const Duration(seconds: 2));
     if (!mounted) return;
     await _controller.reverse();
+    if (!mounted) return;
     widget.onFinished();
   }
 

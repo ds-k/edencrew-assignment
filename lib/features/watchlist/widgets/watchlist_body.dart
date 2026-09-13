@@ -20,6 +20,8 @@ class WatchlistBody extends ConsumerWidget {
     if (stocks.isEmpty) return const WatchlistEmptyBody();
 
     return ListView.separated(
+      // 목록이 화면보다 짧아도(관심종목 1~2개) 당겨서 새로고침이 되도록.
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.symmetric(horizontal: context.dimens.space4),
       itemCount: stocks.length,
       separatorBuilder: (_, _) => const RowDivider(),
