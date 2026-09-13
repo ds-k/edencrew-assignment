@@ -69,7 +69,10 @@ class _DetailBody extends StatelessWidget {
                   child: const _PeriodTabs(),
                 ),
                 SizedBox(height: context.dimens.space4),
-                _ChartSection(symbol: stock.symbol),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: context.dimens.space4),
+                  child: _ChartSection(symbol: stock.symbol),
+                ),
                 SizedBox(height: context.dimens.space4),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: context.dimens.space4),

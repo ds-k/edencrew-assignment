@@ -144,7 +144,8 @@ class NaverStockRepository implements StockRepository {
       symbol,
       pageCount: period.pageCount,
     );
-    // Naver 응답이 이미 최신순이라 재정렬하지 않는다 — candlesticks 패키지도 이 순서를 기대함.
+    // Naver 응답이 이미 최신순이라 재정렬하지 않는다 — 일별 시세 표도 이 순서를 그대로 쓰고,
+    // 차트(CandleChart)는 화면단에서 필요할 때 뒤집는다.
     return rows.map(Candle.fromDto).toList(growable: false);
   }
 }
