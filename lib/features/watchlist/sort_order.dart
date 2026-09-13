@@ -22,7 +22,8 @@ class SelectedSortOrder extends _$SelectedSortOrder {
   void select(SortOrder order) => state = order;
 }
 
-/// 시세 미수신 종목(`hasQuote == false`)은 정렬 기준과 무관하게 항상 맨 뒤로 보낸다.
+/// 시세 미수신 종목(`hasQuote == false`)은 `price`/`changeRate` 정렬에서 항상 맨 뒤로 보낸다.
+/// `alphabetical`은 이름만 비교하므로 시세 수신 여부와 무관하게 섞여 들어간다.
 List<Stock> sortStocks(List<Stock> stocks, SortOrder order) {
   final List<Stock> sorted = List<Stock>.of(stocks);
   switch (order) {

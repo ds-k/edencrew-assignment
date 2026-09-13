@@ -90,6 +90,7 @@ SizedBox(height: context.dimens.space4)
 | `border/hairline` | `borderHairline` | 1 |
 | `icon/sm` | `iconSm` | 16 |
 | `icon/md` | `iconMd` | 20 |
+| _(Figma에 없음)_ | `iconLg` | 40 — 관심/검색 빈 상태 큰 아이콘(`01·관심_empty`, `02·검색_empty`, `02·검색결과_empty`) 전용으로 추가 |
 | `size/row-min` | `rowMinHeight` | 56 |
 | `size/tabbar` | `tabBarHeight` | 56 |
 

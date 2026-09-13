@@ -28,13 +28,14 @@ class WatchlistScreen extends ConsumerWidget {
             _Header(isRefreshing: asyncStocks.isLoading),
             Expanded(
               child: asyncStocks.when(
+                skipLoadingOnReload: true,
                 data: (List<Stock> stocks) => _WatchlistBody(
                   stocks: sortStocks(stocks, ref.watch(selectedSortOrderProvider)),
                 ),
                 loading: () => const _LoadingBody(),
                 error: (Object error, StackTrace stackTrace) =>
                     _ErrorBody(onRetry: () {
-                      ref.read(watchlistViewModelProvider.notifier).refresh();
+                      ref.read(watchlistViewModelProvider.notifier).refresh().ignore();
                     }),
               ),
             ),
@@ -98,7 +99,8 @@ class _Header extends ConsumerWidget {
           IconButton(
             onPressed: isRefreshing
                 ? null
-                : () => ref.read(watchlistViewModelProvider.notifier).refresh(),
+                : () =>
+                      ref.read(watchlistViewModelProvider.notifier).refresh().ignore(),
             icon: AppIcon(
               'ico_refresh.svg',
               size: context.dimens.iconMd,
@@ -222,7 +224,7 @@ class _EmptyBody extends StatelessWidget {
           children: <Widget>[
             AppIcon(
               'ico_starEmpty.svg',
-              size: 40,
+              size: context.dimens.iconLg,
               color: context.colors.textTertiary,
             ),
             SizedBox(height: context.dimens.space4),
@@ -290,12 +292,12 @@ class _FullRowSkeleton extends StatelessWidget {
             ),
           ),
           SizedBox(width: context.dimens.space3),
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: <Widget>[
-              SkeletonBox(width: 72, height: 16),
-              SizedBox(height: 4),
-              SkeletonBox(width: 96, height: 14),
+              const SkeletonBox(width: 72, height: 16),
+              SizedBox(height: context.dimens.space1),
+              const SkeletonBox(width: 96, height: 14),
             ],
           ),
         ],
@@ -319,7 +321,7 @@ class _ErrorBody extends StatelessWidget {
           children: <Widget>[
             Icon(
               Icons.error_outline,
-              size: 32,
+              size: context.dimens.iconLg,
               color: context.colors.feedbackWarning,
             ),
             SizedBox(height: context.dimens.space3),

@@ -184,7 +184,7 @@ class _MessageBody extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            AppIcon(asset, size: 40, color: context.colors.textTertiary),
+            AppIcon(asset, size: context.dimens.iconLg, color: context.colors.textTertiary),
             SizedBox(height: context.dimens.space4),
             Text(
               title,
