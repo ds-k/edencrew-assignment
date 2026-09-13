@@ -65,6 +65,11 @@ class _DetailBody extends StatelessWidget {
                 SizedBox(height: context.dimens.space4),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: context.dimens.space4),
+                  child: const _PeriodTabs(),
+                ),
+                SizedBox(height: context.dimens.space4),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: context.dimens.space4),
                   child: _SummaryCards(stock: stock),
                 ),
                 SizedBox(height: context.dimens.space5),
@@ -195,6 +200,69 @@ class _PriceSection extends StatelessWidget {
   }
 }
 
+class _PeriodTabs extends ConsumerWidget {
+  const _PeriodTabs();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ChartPeriod selected = ref.watch(selectedPeriodProvider);
+
+    return Row(
+      children: <Widget>[
+        for (final ChartPeriod period in ChartPeriod.values) ...<Widget>[
+          _PeriodTab(
+            period: period,
+            selected: period == selected,
+            onTap: () =>
+                ref.read(selectedPeriodProvider.notifier).select(period),
+          ),
+          SizedBox(width: context.dimens.space2),
+        ],
+      ],
+    );
+  }
+}
+
+class _PeriodTab extends StatelessWidget {
+  const _PeriodTab({
+    required this.period,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final ChartPeriod period;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(context.dimens.radiusMd),
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: context.dimens.space3,
+          vertical: context.dimens.space2,
+        ),
+        decoration: BoxDecoration(
+          color: selected ? context.colors.accentBg : null,
+          borderRadius: BorderRadius.circular(context.dimens.radiusMd),
+        ),
+        child: Text(
+          period.label,
+          style: TextStyle(
+            color: selected
+                ? context.colors.accentDefault
+                : context.colors.textSecondary,
+            fontSize: 13,
+            fontWeight: AppTypography.medium,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _SummaryCards extends StatelessWidget {
   const _SummaryCards({required this.stock});
 
@@ -301,8 +369,9 @@ class _DailyPriceTable extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final ChartPeriod period = ref.watch(selectedPeriodProvider);
     final AsyncValue<List<Candle>> asyncCandles = ref.watch(
-      monthlyCandlesProvider(symbol),
+      candlesProvider(symbol, period),
     );
 
     return Padding(
