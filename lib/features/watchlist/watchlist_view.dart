@@ -8,6 +8,7 @@ import '../../core/widgets/stock_row.dart';
 import '../../data/models/stock.dart';
 import '../../state/favorites_provider.dart';
 import '../../theme/theme.dart';
+import 'sort_order.dart';
 import 'watchlist_viewmodel.dart';
 
 class WatchlistScreen extends ConsumerWidget {
@@ -27,7 +28,9 @@ class WatchlistScreen extends ConsumerWidget {
             _Header(isRefreshing: asyncStocks.isLoading),
             Expanded(
               child: asyncStocks.when(
-                data: (List<Stock> stocks) => _WatchlistBody(stocks: stocks),
+                data: (List<Stock> stocks) => _WatchlistBody(
+                  stocks: sortStocks(stocks, ref.watch(selectedSortOrderProvider)),
+                ),
                 loading: () => const _LoadingBody(),
                 error: (Object error, StackTrace stackTrace) =>
                     _ErrorBody(onRetry: () {
@@ -49,6 +52,8 @@ class _Header extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final SortOrder sortOrder = ref.watch(selectedSortOrderProvider);
+
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: context.dimens.space4,
@@ -65,23 +70,29 @@ class _Header extends ConsumerWidget {
             ),
           ),
           const Spacer(),
-          // 정적 표시. 탭하면 정렬 바텀시트가 열리는 동작은 아직 연결되어 있지 않다.
-          Row(
-            children: <Widget>[
-              Text(
-                '가나다순',
-                style: TextStyle(
-                  color: context.colors.textSecondary,
-                  fontSize: 13,
-                  fontWeight: AppTypography.medium,
+          InkWell(
+            onTap: () => showModalBottomSheet<void>(
+              context: context,
+              backgroundColor: Colors.transparent,
+              builder: (_) => const _SortBottomSheet(),
+            ),
+            child: Row(
+              children: <Widget>[
+                Text(
+                  sortOrder.label,
+                  style: TextStyle(
+                    color: context.colors.textSecondary,
+                    fontSize: 13,
+                    fontWeight: AppTypography.medium,
+                  ),
                 ),
-              ),
-              AppIcon(
-                'ico_align.svg',
-                size: context.dimens.iconMd,
-                color: context.colors.textSecondary,
-              ),
-            ],
+                AppIcon(
+                  'ico_align.svg',
+                  size: context.dimens.iconMd,
+                  color: context.colors.textSecondary,
+                ),
+              ],
+            ),
           ),
           SizedBox(width: context.dimens.space2),
           IconButton(
@@ -95,6 +106,75 @@ class _Header extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SortBottomSheet extends ConsumerWidget {
+  const _SortBottomSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final SortOrder selected = ref.watch(selectedSortOrderProvider);
+
+    return SafeArea(
+      top: false,
+      child: Container(
+        decoration: BoxDecoration(
+          color: context.colors.surfaceRaised,
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(context.dimens.radiusLg),
+          ),
+        ),
+        padding: EdgeInsets.symmetric(horizontal: context.dimens.space4),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: context.dimens.space4),
+              child: Text(
+                '정렬',
+                style: TextStyle(
+                  color: context.colors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: AppTypography.bold,
+                ),
+              ),
+            ),
+            for (final SortOrder order in SortOrder.values)
+              InkWell(
+                onTap: () {
+                  ref.read(selectedSortOrderProvider.notifier).select(order);
+                  Navigator.of(context).pop();
+                },
+                child: SizedBox(
+                  height: context.dimens.rowMinHeight,
+                  child: Row(
+                    children: <Widget>[
+                      Text(
+                        order.label,
+                        style: TextStyle(
+                          color: context.colors.textPrimary,
+                          fontSize: 15,
+                          fontWeight: AppTypography.regular,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (order == selected)
+                        AppIcon(
+                          'ico_check.svg',
+                          size: context.dimens.iconMd,
+                          color: context.colors.textPrimary,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            SizedBox(height: context.dimens.space2),
+          ],
+        ),
       ),
     );
   }
