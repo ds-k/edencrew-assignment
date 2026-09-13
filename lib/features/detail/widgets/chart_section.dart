@@ -25,23 +25,36 @@ class ChartSection extends ConsumerWidget {
     return SizedBox(
       width: double.infinity,
       height: _height,
-      child: asyncCandles.when(
-        data: (List<Candle> candles) {
-          if (candles.length < 2) {
-            return Center(
-              child: Text(
-                '차트를 표시할 데이터가 부족합니다',
-                style: TextStyle(color: context.colors.textSecondary, fontSize: 13),
-              ),
+      // 기간 탭을 바꾸면 이전 차트가 페이드아웃되며 새 차트가 페이드인된다.
+      // period를 키로 써서 데이터가 바뀔 때만(로딩/에러 사이 전환은 말고) 애니메이션되게 한다.
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 250),
+        child: asyncCandles.when(
+          data: (List<Candle> candles) {
+            if (candles.length < 2) {
+              return Center(
+                key: const ValueKey<String>('insufficient'),
+                child: Text(
+                  '차트를 표시할 데이터가 부족합니다',
+                  style: TextStyle(color: context.colors.textSecondary, fontSize: 13),
+                ),
+              );
+            }
+            return KeyedSubtree(
+              key: ValueKey<ChartPeriod>(period),
+              child: CandleChart(candles: candles),
             );
-          }
-          return CandleChart(candles: candles);
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (Object error, StackTrace stackTrace) => Center(
-          child: Text(
-            '차트를 불러오지 못했습니다',
-            style: TextStyle(color: context.colors.textSecondary, fontSize: 13),
+          },
+          loading: () => const Center(
+            key: ValueKey<String>('loading'),
+            child: CircularProgressIndicator(),
+          ),
+          error: (Object error, StackTrace stackTrace) => Center(
+            key: const ValueKey<String>('error'),
+            child: Text(
+              '차트를 불러오지 못했습니다',
+              style: TextStyle(color: context.colors.textSecondary, fontSize: 13),
+            ),
           ),
         ),
       ),
