@@ -17,3 +17,9 @@ String formatPriceChange(int change, double rate) {
   final String rateStr = (rate * 100).toStringAsFixed(2);
   return '$changeSign${formatPrice(change)} ($rateSign$rateStr%)';
 }
+
+/// 등락률 없이 부호만 붙인 등락액. 예: `-400`, `+1,200`, `0`. 일별 시세 표에서 쓴다.
+String formatSignedPrice(int change) {
+  if (change > 0) return '+${formatPrice(change)}';
+  return formatPrice(change);
+}

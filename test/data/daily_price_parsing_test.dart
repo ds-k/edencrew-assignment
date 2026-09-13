@@ -24,7 +24,7 @@ String _fakePageHtml({required int page, required int lastPage}) {
 <tr>
 <td align="center"><span>2026.01.0$page</span></td>
 <td class="num"><span>${page}0,000</span></td>
-<td class="num"><span>0</span></td>
+<td class="num"><span class="tah">0</span></td>
 <td class="num"><span>${page}0,000</span></td>
 <td class="num"><span>${page}0,500</span></td>
 <td class="num"><span>${page}0,000</span></td>
@@ -65,6 +65,14 @@ void main() {
       expect(first.accumulatedTradingVolume, 21010910);
     });
 
+    test('전일비는 부호가 없는 숫자 + <em> 클래스(하락/상승/보합)를 조합해 부호를 만든다', () {
+      final rows = NaverDailyPriceApi.parseRows(html);
+      // 09.10: 하락 500 → -500. 09.09: 보합 0. 09.07: 상승 14,500 → +14500.
+      expect(rows[0].priceChange, -500);
+      expect(rows[1].priceChange, 0);
+      expect(rows[3].priceChange, 14500);
+    });
+
     test('페이지 네비게이션의 "맨뒤" 링크에서 마지막 페이지를 읽는다', () {
       expect(NaverDailyPriceApi.parseLastPage(html), 756);
     });
@@ -84,7 +92,7 @@ void main() {
 <tr>
 <td align="center"><span>2026.01.02</span></td>
 <td class="num"><span>-</span></td>
-<td class="num"><span>0</span></td>
+<td class="num"><span class="tah">0</span></td>
 <td class="num"><span>10,000</span></td>
 <td class="num"><span>10,500</span></td>
 <td class="num"><span>9,500</span></td>
@@ -93,7 +101,7 @@ void main() {
 <tr>
 <td align="center"><span>2026.01.01</span></td>
 <td class="num"><span>10,000</span></td>
-<td class="num"><span>0</span></td>
+<td class="num"><span class="tah">0</span></td>
 <td class="num"><span>10,000</span></td>
 <td class="num"><span>10,500</span></td>
 <td class="num"><span>9,500</span></td>

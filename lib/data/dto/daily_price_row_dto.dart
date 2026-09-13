@@ -7,13 +7,18 @@ import 'package:flutter/foundation.dart';
 /// `accumulatedTradingVolume`/`lastPage`)을 그대로 따른다. HTML은 JSON과 달리 원본
 /// 필드명이 없어서, 이 문서에 적힌 이름이 곧 이 endpoint의 "원형" 계약이라고 본다.
 ///
-/// 표 컬럼 순서는 `종가, 전일비, 시가, 고가, 저가, 거래량` — 전일비는 등락 계산에
-/// 쓰지 않으므로(가격/등락은 실시간 시세 dto에서 계산) 담지 않는다.
+/// 표 컬럼 순서는 `종가, 전일비, 시가, 고가, 저가, 거래량`.
+///
+/// 전일비 셀은 숫자에 부호가 없고(`<em class="bu_pup/bu_pdn/bu_pn">` 클래스로만
+/// 상승/하락/보합을 구분) 텍스트에 "상승"/"하락" 같은 접근성 문구가 섞여 있어, 다른
+/// 숫자 컬럼처럼 셀 전체 텍스트를 그대로 파싱할 수 없다. `naver_daily_price_api.dart`가
+/// 숫자 span과 `<em>` 클래스를 따로 읽어 부호를 붙인 뒤 [priceChange]에 담는다.
 @immutable
 class DailyPriceRowDto {
   const DailyPriceRowDto({
     required this.localDate,
     required this.closePrice,
+    required this.priceChange,
     required this.openPrice,
     required this.highPrice,
     required this.lowPrice,
@@ -24,6 +29,10 @@ class DailyPriceRowDto {
   final String localDate;
 
   final int closePrice;
+
+  /// 전일 대비 등락액. 하락이면 음수, 보합이면 0.
+  final int priceChange;
+
   final int openPrice;
   final int highPrice;
   final int lowPrice;

@@ -30,6 +30,7 @@ class Candle {
     required this.high,
     required this.low,
     required this.close,
+    required this.priceChange,
     required this.volume,
   });
 
@@ -45,6 +46,7 @@ class Candle {
       high: dto.highPrice,
       low: dto.lowPrice,
       close: dto.closePrice,
+      priceChange: dto.priceChange,
       volume: dto.accumulatedTradingVolume,
     );
   }
@@ -54,6 +56,10 @@ class Candle {
   final int high;
   final int low;
   final int close;
+
+  /// 전일 대비 등락액(일별 시세 표의 "등락" 컬럼). 하락이면 음수, 보합이면 0.
+  final int priceChange;
+
   final int volume;
 
   bool get isUp => close >= open;

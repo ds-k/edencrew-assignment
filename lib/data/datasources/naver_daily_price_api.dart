@@ -26,7 +26,7 @@ class NaverDailyPriceApi {
   ///
   /// `td`가 정확히 7개이고 첫 셀이 날짜 형식인 행만 채택 — 헤더(`th`만 있는 행)와
   /// 스페이서 행(`<td colspan="7">` 하나뿐)이 자연스럽게 걸러진다.
-  /// 컬럼 순서 `[날짜, 종가, 전일비, 시가, 고가, 저가, 거래량]`에서 전일비(index 2)는 건너뛴다.
+  /// 컬럼 순서는 `[날짜, 종가, 전일비, 시가, 고가, 저가, 거래량]`.
   static List<DailyPriceRowDto> parseRows(String html) =>
       _rowsFrom(html_parser.parse(html));
 
@@ -56,22 +56,28 @@ class NaverDailyPriceApi {
       // "실패 시 null, 해석은 상위 계층 몫" 계약을 어기고 조용히 0을 만들면
       // 실제 값 0과 구분이 안 돼서 파싱 실패가 화면에 숨겨진다.
       final int? close = asInt(tds[1].text);
+      // 전일비 셀은 텍스트에 "상승"/"하락" 접근성 문구가 섞여 있어 숫자 span만 골라 읽고,
+      // 부호는 숫자에 없으니 <em> 클래스(bu_pdn=하락)로 판단해 따로 붙인다.
+      final int? changeMagnitude = asInt(tds[2].querySelector('span.tah')?.text);
       final int? open = asInt(tds[3].text);
       final int? high = asInt(tds[4].text);
       final int? low = asInt(tds[5].text);
       final int? volume = asInt(tds[6].text);
       if (close == null ||
+          changeMagnitude == null ||
           open == null ||
           high == null ||
           low == null ||
           volume == null) {
         continue;
       }
+      final bool isDown = tds[2].querySelector('em.bu_pdn') != null;
 
       rows.add(
         DailyPriceRowDto(
           localDate: dateText.replaceAll('.', ''),
           closePrice: close,
+          priceChange: isDown ? -changeMagnitude : changeMagnitude,
           openPrice: open,
           highPrice: high,
           lowPrice: low,
