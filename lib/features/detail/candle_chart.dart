@@ -3,11 +3,8 @@ import 'package:flutter/material.dart';
 import '../../data/models/candle.dart';
 import '../../theme/theme.dart';
 
-/// 그리드/축/거래량/스케일 버튼 없이 캔들만 그리는 차트. 좌우 폭을 꽉 채운다.
-///
-/// `candlesticks` 3.0.1 패키지는 이런 요소들을 끌 수 있는 옵션이 없이 항상 같이
-/// 그려서(`ChartComposer`/`MainChartPane`에 하드코딩) 직접 `CustomPainter`로
-/// 그리는 쪽을 택했다 — ASSIGNMENT.md가 명시적으로 허용하는 방식이다.
+/// 캔들 차트. 그리드 배경 + 꼬리(`chartBaseline`) + 몸통(`chartLineUp`/`chartLineDown`)만
+/// 그린다. 축 숫자·거래량·크로스헤어·스케일 버튼은 없다(좌우 폭을 꽉 채우는 순수 차트).
 class CandleChart extends StatelessWidget {
   const CandleChart({super.key, required this.candles});
 
@@ -24,6 +21,8 @@ class CandleChart extends StatelessWidget {
         candles: chronological,
         bullColor: context.colors.chartLineUp,
         bearColor: context.colors.chartLineDown,
+        baselineColor: context.colors.chartBaseline,
+        gridColor: context.colors.borderSubtle,
       ),
     );
   }
@@ -34,15 +33,26 @@ class _CandleChartPainter extends CustomPainter {
     required this.candles,
     required this.bullColor,
     required this.bearColor,
+    required this.baselineColor,
+    required this.gridColor,
   });
 
   final List<Candle> candles;
   final Color bullColor;
   final Color bearColor;
 
+  /// 캔들 꼬리(고가-저가 선)와, 등락이 전혀 없는 캔들의 표시 색.
+  final Color baselineColor;
+  final Color gridColor;
+
+  static const int _gridColumns = 6;
+  static const int _gridRows = 4;
+
   @override
   void paint(Canvas canvas, Size size) {
     if (candles.isEmpty) return;
+
+    _drawGrid(canvas, size);
 
     final int high = candles.map((Candle c) => c.high).reduce(
       (int a, int b) => a > b ? a : b,
@@ -64,14 +74,26 @@ class _CandleChartPainter extends CustomPainter {
     for (int i = 0; i < candles.length; i++) {
       final Candle candle = candles[i];
       final double centerX = (i + 0.5) * slotWidth;
-      final Paint paint = Paint()
-        ..color = candle.isUp ? bullColor : bearColor
-        ..strokeWidth = 1;
+
+      // 고가==저가(그날 가격 변동이 전혀 없음)면 캔들 대신 짧은 기준선만 표시한다.
+      if (candle.high == candle.low) {
+        final double y = yFor(candle.close);
+        canvas.drawLine(
+          Offset(centerX - bodyWidth / 2, y),
+          Offset(centerX + bodyWidth / 2, y),
+          Paint()
+            ..color = baselineColor
+            ..strokeWidth = 2,
+        );
+        continue;
+      }
 
       canvas.drawLine(
         Offset(centerX, yFor(candle.high)),
         Offset(centerX, yFor(candle.low)),
-        paint,
+        Paint()
+          ..color = baselineColor
+          ..strokeWidth = 1,
       );
 
       final double openY = yFor(candle.open);
@@ -81,8 +103,22 @@ class _CandleChartPainter extends CustomPainter {
 
       canvas.drawRect(
         Rect.fromLTWH(centerX - bodyWidth / 2, top, bodyWidth, bodyHeight),
-        paint,
+        Paint()..color = candle.isUp ? bullColor : bearColor,
       );
+    }
+  }
+
+  void _drawGrid(Canvas canvas, Size size) {
+    final Paint paint = Paint()
+      ..color = gridColor
+      ..strokeWidth = 1;
+    for (int i = 1; i < _gridColumns; i++) {
+      final double x = size.width * i / _gridColumns;
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (int j = 1; j < _gridRows; j++) {
+      final double y = size.height * j / _gridRows;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
     }
   }
 
@@ -90,6 +126,8 @@ class _CandleChartPainter extends CustomPainter {
   bool shouldRepaint(covariant _CandleChartPainter oldDelegate) {
     return !identical(oldDelegate.candles, candles) ||
         oldDelegate.bullColor != bullColor ||
-        oldDelegate.bearColor != bearColor;
+        oldDelegate.bearColor != bearColor ||
+        oldDelegate.baselineColor != baselineColor ||
+        oldDelegate.gridColor != gridColor;
   }
 }
