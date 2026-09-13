@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/widgets/app_icon.dart';
+import 'features/search/search_view.dart';
+import 'features/watchlist/watchlist_view.dart';
 import 'theme/theme.dart';
 
 void main() {
-  runApp(const EdencrewAssignmentApp());
+  runApp(const ProviderScope(child: EdencrewAssignmentApp()));
 }
 
 class EdencrewAssignmentApp extends StatelessWidget {
@@ -14,74 +18,128 @@ class EdencrewAssignmentApp extends StatelessWidget {
     return MaterialApp(
       title: '이든크루 평가 과제',
       theme: AppTheme.dark,
-      home: const StartHereScreen(),
+      home: const RootScreen(),
     );
   }
 }
 
-/// 과제 시작점입니다. 이 화면은 지우고 직접 구현한 화면으로 바꿔 주세요.
-///
-/// 디자인 토큰을 어떻게 꺼내 쓰는지 보여주는 예시이기도 합니다.
-class StartHereScreen extends StatelessWidget {
-  const StartHereScreen({super.key});
+/// 관심/검색 화면을 하단 탭으로 전환하는 앱 진입점.
+/// 종목상세는 탭이 아니라 검색/관심 화면에서 push되는 별도 화면이라 여기 포함하지 않는다.
+class RootScreen extends StatefulWidget {
+  const RootScreen({super.key});
+
+  @override
+  State<RootScreen> createState() => _RootScreenState();
+}
+
+class _RootScreenState extends State<RootScreen> {
+  int _index = 0;
+
+  static const List<Widget> _screens = <Widget>[
+    WatchlistScreen(),
+    SearchScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final AppColors colors = context.colors;
-    final AppDimens dimens = context.dimens;
-
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.all(dimens.space5),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
+      body: IndexedStack(index: _index, children: _screens),
+      bottomNavigationBar: _BottomTabBar(
+        index: _index,
+        onChanged: (int index) => setState(() => _index = index),
+      ),
+    );
+  }
+}
+
+class _BottomTabBar extends StatelessWidget {
+  const _BottomTabBar({required this.index, required this.onChanged});
+
+  final int index;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: SizedBox(
+        height: context.dimens.tabBarHeight,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: context.colors.surfaceBase,
+            border: Border(
+              top: BorderSide(
+                color: context.colors.borderSubtle,
+                width: context.dimens.borderHairline,
+              ),
+            ),
+          ),
+          child: Row(
             children: <Widget>[
-              Text(
-                '이든크루 평가 과제',
-                style: TextStyle(
-                  color: colors.textPrimary,
-                  fontSize: 24,
-                  fontWeight: AppTypography.bold,
-                ),
+              _TabItem(
+                selectedAsset: 'ico_starFill.svg',
+                unselectedAsset: 'ico_starEmpty.svg',
+                label: '관심',
+                selected: index == 0,
+                onTap: () => onChanged(0),
               ),
-              SizedBox(height: dimens.space2),
-              Text(
-                'README.md를 먼저 읽고, 이 화면부터 교체해 주세요.\n'
-                '색과 간격은 lib/theme의 토큰을 통해서만 사용해 주세요.',
-                style: TextStyle(
-                  color: colors.textSecondary,
-                  fontSize: 14,
-                  fontWeight: AppTypography.regular,
-                  height: 1.5,
-                ),
-              ),
-              SizedBox(height: dimens.space5),
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: dimens.space3,
-                  vertical: dimens.space2,
-                ),
-                decoration: BoxDecoration(
-                  color: colors.accentBg,
-                  borderRadius: BorderRadius.circular(dimens.radiusMd),
-                  border: Border.all(
-                    color: colors.borderSubtle,
-                    width: dimens.borderHairline,
-                  ),
-                ),
-                child: Text(
-                  'context.colors / context.dimens',
-                  style: TextStyle(
-                    color: colors.accentDefault,
-                    fontSize: 13,
-                    fontWeight: AppTypography.medium,
-                  ),
-                ),
+              _TabItem(
+                selectedAsset: 'ico_search.svg',
+                unselectedAsset: 'ico_search.svg',
+                label: '검색',
+                selected: index == 1,
+                onTap: () => onChanged(1),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TabItem extends StatelessWidget {
+  const _TabItem({
+    required this.selectedAsset,
+    required this.unselectedAsset,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String selectedAsset;
+  final String unselectedAsset;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color color = selected
+        ? context.colors.navActive
+        : context.colors.navInactive;
+
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            AppIcon(
+              selected ? selectedAsset : unselectedAsset,
+              size: context.dimens.iconMd,
+              color: color,
+            ),
+            SizedBox(height: context.dimens.space1),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 11,
+                fontWeight: AppTypography.medium,
+              ),
+            ),
+          ],
         ),
       ),
     );
