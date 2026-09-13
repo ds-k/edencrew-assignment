@@ -1,8 +1,11 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../core/preferences_provider.dart';
 import '../../data/models/stock.dart';
 
 part 'sort_order.g.dart';
+
+const String _prefsKey = 'sort_order';
 
 enum SortOrder {
   price('현재가순'),
@@ -14,12 +17,22 @@ enum SortOrder {
   final String label;
 }
 
+/// 선택된 정렬 기준. 앱을 재실행해도 유지되도록 `shared_preferences`에 저장한다.
 @riverpod
 class SelectedSortOrder extends _$SelectedSortOrder {
   @override
-  SortOrder build() => SortOrder.alphabetical;
+  SortOrder build() {
+    final String? saved = ref.watch(sharedPreferencesProvider).getString(_prefsKey);
+    return SortOrder.values.firstWhere(
+      (SortOrder order) => order.name == saved,
+      orElse: () => SortOrder.alphabetical,
+    );
+  }
 
-  void select(SortOrder order) => state = order;
+  void select(SortOrder order) {
+    state = order;
+    ref.read(sharedPreferencesProvider).setString(_prefsKey, order.name).ignore();
+  }
 }
 
 /// 시세 미수신 종목(`hasQuote == false`)은 `price`/`changeRate` 정렬에서 항상 맨 뒤로 보낸다.

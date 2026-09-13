@@ -1,13 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'core/preferences_provider.dart';
 import 'core/widgets/app_icon.dart';
 import 'features/search/search_view.dart';
 import 'features/watchlist/watchlist_view.dart';
 import 'theme/theme.dart';
 
-void main() {
-  runApp(const ProviderScope(child: EdencrewAssignmentApp()));
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+  runApp(
+    ProviderScope(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      child: const EdencrewAssignmentApp(),
+    ),
+  );
 }
 
 class EdencrewAssignmentApp extends StatelessWidget {

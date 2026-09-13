@@ -6,11 +6,12 @@ part of 'favorites_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$favoritesHash() => r'fce06b516ce3b67c21f74e7384a8c7090bd23bcc';
+String _$favoritesHash() => r'aa2add3f6b087b797e892e5300c85e9df040793c';
 
 /// 관심 상태의 단일 진실 소스. 관심/검색/상세 세 화면이 이 provider 하나만 watch한다.
 ///
 /// 값은 [Stock.id]/[SearchResult.id] 형식(`domestic:{symbol}`)의 종목 id 집합.
+/// 변경할 때마다 `shared_preferences`에 즉시 저장해 앱을 재실행해도 유지된다.
 ///
 /// Copied from [Favorites].
 @ProviderFor(Favorites)

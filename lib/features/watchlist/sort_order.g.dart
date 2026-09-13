@@ -6,9 +6,11 @@ part of 'sort_order.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$selectedSortOrderHash() => r'ab13f382cbb9aec1596938b5794414b0f63b9386';
+String _$selectedSortOrderHash() => r'884fd581854cfde9d963c832a6b85b2b3e97868b';
 
-/// See also [SelectedSortOrder].
+/// 선택된 정렬 기준. 앱을 재실행해도 유지되도록 `shared_preferences`에 저장한다.
+///
+/// Copied from [SelectedSortOrder].
 @ProviderFor(SelectedSortOrder)
 final selectedSortOrderProvider =
     AutoDisposeNotifierProvider<SelectedSortOrder, SortOrder>.internal(
