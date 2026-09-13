@@ -85,7 +85,7 @@ class _SearchField extends StatelessWidget {
                 onChanged: onChanged,
                 style: TextStyle(color: context.colors.textPrimary, fontSize: 15),
                 decoration: InputDecoration(
-                  hintText: '종목명 또는 코드 검색',
+                  hintText: '종목명 또는 종목코드',
                   hintStyle: TextStyle(color: context.colors.textTertiary, fontSize: 15),
                   border: InputBorder.none,
                   isDense: true,
@@ -115,7 +115,7 @@ class _Body extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (query.isEmpty) return const SizedBox.shrink();
+    if (query.isEmpty) return const _InitialBody();
 
     final AsyncValue<List<SearchResult>> asyncResults = ref.watch(
       searchResultsProvider(query),
@@ -123,7 +123,7 @@ class _Body extends ConsumerWidget {
 
     return asyncResults.when(
       data: (List<SearchResult> results) {
-        if (results.isEmpty) return const SizedBox.shrink();
+        if (results.isEmpty) return _NoResultsBody(query: query);
         return _ResultList(results: results, query: query);
       },
       loading: () => const SizedBox.shrink(),
@@ -131,6 +131,81 @@ class _Body extends ConsumerWidget {
         child: Text(
           '검색 결과를 불러오지 못했습니다',
           style: TextStyle(color: context.colors.textPrimary, fontSize: 14),
+        ),
+      ),
+    );
+  }
+}
+
+class _InitialBody extends StatelessWidget {
+  const _InitialBody();
+
+  @override
+  Widget build(BuildContext context) {
+    return _MessageBody(
+      asset: 'ico_search.svg',
+      title: '종목을 검색해 보세요',
+      message: '종목명 또는 종목코드 6자리로\n검색하실 수 있습니다.',
+    );
+  }
+}
+
+class _NoResultsBody extends StatelessWidget {
+  const _NoResultsBody({required this.query});
+
+  final String query;
+
+  @override
+  Widget build(BuildContext context) {
+    return _MessageBody(
+      asset: 'ico_searchEmpty.svg',
+      title: '검색 결과가 없습니다',
+      message: "'$query'와 일치하는 검색 결과를 찾지 못했습니다.",
+    );
+  }
+}
+
+class _MessageBody extends StatelessWidget {
+  const _MessageBody({
+    required this.asset,
+    required this.title,
+    required this.message,
+  });
+
+  final String asset;
+  final String title;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: context.dimens.space6),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            AppIcon(asset, size: 40, color: context.colors.textTertiary),
+            SizedBox(height: context.dimens.space4),
+            Text(
+              title,
+              style: TextStyle(
+                color: context.colors.textPrimary,
+                fontSize: 16,
+                fontWeight: AppTypography.medium,
+              ),
+            ),
+            SizedBox(height: context.dimens.space2),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: context.colors.textSecondary,
+                fontSize: 13,
+                fontWeight: AppTypography.regular,
+                height: 1.5,
+              ),
+            ),
+          ],
         ),
       ),
     );
