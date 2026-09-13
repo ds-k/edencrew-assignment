@@ -3,11 +3,9 @@ import 'package:flutter/foundation.dart';
 import '../dto/daily_price_row_dto.dart';
 
 /// 상세 화면 기간 탭. `pageCount`는 `NaverDailyPriceApi.fetchRange`에 그대로 넘긴다.
-///
-/// `month1`은 실제 거래일 기준 한 달(약 21~23일)보다 넉넉하게 3페이지(30거래일)로 잡았다 —
-/// 2페이지(20거래일)는 실제로 캔들이 성기게 보여서, 다소 과하더라도 30개를 기본값으로 택함.
+/// 시안에는 1개월 선택 시 60개의 봉이 묘사되어 있으나, 주식 시장의 1개월 거래일(약 20~22영업일) 기준 실제 API 응답 데이터에 맞춰 렌더링하도록 정합성을 맞춤.
 enum ChartPeriod {
-  month1(pageCount: 3, label: '1개월'),
+  month1(pageCount: 2, label: '1개월'),
   month3(pageCount: 6, label: '3개월'),
   month6(pageCount: 12, label: '6개월'),
   year1(pageCount: 25, label: '1년');
