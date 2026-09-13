@@ -40,19 +40,34 @@ class DetailScreen extends ConsumerWidget {
   }
 }
 
-class _DetailBody extends StatelessWidget {
+class _DetailBody extends StatefulWidget {
   const _DetailBody({required this.stock});
 
   final Stock stock;
 
   @override
+  State<_DetailBody> createState() => _DetailBodyState();
+}
+
+class _DetailBodyState extends State<_DetailBody> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final Stock stock = widget.stock;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         DetailHeader(stock: stock),
         Expanded(
           child: SingleChildScrollView(
+            controller: _scrollController,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -76,7 +91,10 @@ class _DetailBody extends StatelessWidget {
                   child: SummaryCards(stock: stock),
                 ),
                 SizedBox(height: context.dimens.space5),
-                DailyPriceTable(symbol: stock.symbol),
+                DailyPriceTable(
+                  symbol: stock.symbol,
+                  scrollController: _scrollController,
+                ),
                 SizedBox(height: context.dimens.space5),
               ],
             ),

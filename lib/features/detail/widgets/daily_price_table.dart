@@ -8,17 +8,68 @@ import '../../../data/models/candle.dart';
 import '../../../theme/theme.dart';
 import '../candles_provider.dart';
 
-class DailyPriceTable extends ConsumerWidget {
-  const DailyPriceTable({super.key, required this.symbol});
+/// 무한 스크롤: 처음엔 [_initialVisibleCount]행만 그리고, [scrollController]가
+/// 붙어있는 상위 스크롤(상세 화면 전체)이 바닥 근처에 닿을 때마다 더 보여준다.
+/// 이미 다 받아온 데이터를 점진적으로만 렌더하는 방식이라(캔들 차트가 기간 전체
+/// 데이터를 어차피 다 요청해야 해서 서버 페이지네이션은 이 구조와 안 맞음) 네트워크는
+/// 그대로고 위젯 생성 개수만 줄어든다 — 1년 탭 250행을 한 번에 렌더하던 문제도 해결됨.
+class DailyPriceTable extends ConsumerStatefulWidget {
+  const DailyPriceTable({
+    super.key,
+    required this.symbol,
+    required this.scrollController,
+  });
 
   final String symbol;
+  final ScrollController scrollController;
+
+  static const int _initialVisibleCount = 15;
+  static const int _loadMoreCount = 15;
+  static const double _loadMoreThreshold = 200;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DailyPriceTable> createState() => _DailyPriceTableState();
+}
+
+class _DailyPriceTableState extends ConsumerState<DailyPriceTable> {
+  int _visibleCount = DailyPriceTable._initialVisibleCount;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    widget.scrollController.removeListener(_onScroll);
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!widget.scrollController.hasClients) return;
+    final ScrollPosition position = widget.scrollController.position;
+    if (position.pixels < position.maxScrollExtent - DailyPriceTable._loadMoreThreshold) {
+      return;
+    }
+    setState(() {
+      _visibleCount += DailyPriceTable._loadMoreCount;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final ChartPeriod period = ref.watch(selectedPeriodProvider);
     final AsyncValue<List<Candle>> asyncCandles = ref.watch(
-      candlesProvider(symbol, period),
+      candlesProvider(widget.symbol, period),
     );
+
+    // 기간 탭이 바뀌면 새 데이터 기준으로 다시 15개부터 보여준다.
+    ref.listen(selectedPeriodProvider, (ChartPeriod? previous, ChartPeriod next) {
+      if (previous != null && previous != next) {
+        setState(() => _visibleCount = DailyPriceTable._initialVisibleCount);
+      }
+    });
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: context.dimens.space4),
@@ -35,7 +86,9 @@ class DailyPriceTable extends ConsumerWidget {
           ),
           SizedBox(height: context.dimens.space3),
           asyncCandles.when(
-            data: (List<Candle> candles) => _DailyPriceRows(candles: candles),
+            data: (List<Candle> candles) => _DailyPriceRows(
+              candles: candles.take(_visibleCount).toList(growable: false),
+            ),
             loading: () => const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
               child: Center(child: CircularProgressIndicator()),
