@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../data/models/search_result.dart';
 import '../../data/repositories/naver_stock_repository.dart';
+import 'recent_searches_provider.dart';
 
 part 'search_viewmodel.g.dart';
 
@@ -18,5 +19,9 @@ Future<List<SearchResult>> searchResults(SearchResultsRef ref, String query) asy
   await Future<void>.delayed(const Duration(milliseconds: 300));
   if (disposed) return const <SearchResult>[];
 
-  return ref.read(stockRepositoryProvider).search(trimmed);
+  final List<SearchResult> results = await ref
+      .read(stockRepositoryProvider)
+      .search(trimmed);
+  ref.read(recentSearchesProvider.notifier).add(trimmed);
+  return results;
 }

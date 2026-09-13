@@ -8,13 +8,14 @@ import 'search_message_body.dart';
 import 'search_result_list.dart';
 
 class SearchBody extends ConsumerWidget {
-  const SearchBody({super.key, required this.query});
+  const SearchBody({super.key, required this.query, required this.onSelectQuery});
 
   final String query;
+  final ValueChanged<String> onSelectQuery;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (query.isEmpty) return const SearchInitialBody();
+    if (query.isEmpty) return SearchInitialBody(onSelectQuery: onSelectQuery);
 
     final AsyncValue<List<SearchResult>> asyncResults = ref.watch(
       searchResultsProvider(query),

@@ -36,10 +36,20 @@ class _SearchScreenState extends State<SearchScreen> {
                 setState(() => _query = '');
               },
             ),
-            Expanded(child: SearchBody(query: _query.trim())),
+            Expanded(
+              child: SearchBody(
+                query: _query.trim(),
+                onSelectQuery: _selectQuery,
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  void _selectQuery(String query) {
+    _controller.text = query;
+    setState(() => _query = query);
   }
 }
